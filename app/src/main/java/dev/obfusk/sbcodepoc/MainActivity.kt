@@ -55,15 +55,44 @@ class MainActivity : AppCompatActivity() {
     }
 
     // FIXME
-    fun parseSigBlock(sigBlock: ByteArray) {
+    fun parseSigBlock(sigBlock: ByteArray): ArrayList<Block> {
+        val results = ArrayList<Block>()
         sigBlock.inputStream().use {
-            val sbSize1 = it.readUInt(8)
-            Log.v(TAG, "Size 1 is ${sbSize1}")
+            it.readUInt(8) // skip over size
+            while (it.available() > 24) {
+                val pairLen = it.readUInt(8)
+                val pairId = it.readUInt(4)
+                val pairVal = it.read(pairLen.toInt() - 4)
+                results.add(Block(pairId, pairVal))
+                Log.v(TAG, "Pair len ${pairLen}, ID 0x${pairId.toString(16)}")
+                when (pairId) {
+                    APK_SIGNATURE_SCHEME_V2_BLOCK_ID -> {
+                        Log.v(TAG, "APK SIGNATURE SCHEME v2 BLOCK")
+                    }
+                    APK_SIGNATURE_SCHEME_V3_BLOCK_ID -> {
+                        Log.v(TAG, "APK SIGNATURE SCHEME v3 BLOCK")
+                    }
+                    APK_SIGNATURE_SCHEME_V31_BLOCK_ID -> {
+                        Log.v(TAG, "APK SIGNATURE SCHEME v3.1 BLOCK")
+                    }
+                    VERITY_PADDING_BLOCK_ID -> {
+                        Log.v(TAG, "VERITY PADDING BLOCK BLOCK")
+                    }
+                }
+            }
         }
+        return results
     }
+
+    class Block(val id: Long, val data: ByteArray)
 
     val EOCD_MAGIC = byteArrayOf(0x50, 0x4b, 0x05, 0x06)
     val SB_MAGIC = "APK Sig Block 42".toByteArray()
+
+    val APK_SIGNATURE_SCHEME_V2_BLOCK_ID: Long = 0x7109871a
+    val APK_SIGNATURE_SCHEME_V3_BLOCK_ID: Long = 0xf05368c0
+    val APK_SIGNATURE_SCHEME_V31_BLOCK_ID: Long = 0x1b93ad6
+    val VERITY_PADDING_BLOCK_ID: Long = 0x42726577
 
     val PACKAGE = "dev.obfusk.sbcodepoc"
     val TAG = "SBCodePoC"
