@@ -14,16 +14,21 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         val tv: TextView = findViewById(R.id.message)
-        getSigBlock(getAPK())?.let {
+        val apk = getAPK()
+        Log.v(TAG, "APK path=${apk}")
+        getSigBlock(apk)?.let {
             parseSigBlock(it).forEach {
                 if (it.id == POC_BLOCK_ID) {
-                    tv.text = it.data.decodeToString()
+                    val payload = it.data.decodeToString()
+                    Log.v(TAG, "PoC payload=${payload}")
+                    tv.text = payload
                 }
             }
         }
     }
 
-    fun getAPK(): String = applicationContext.getPackageManager().getApplicationInfo(PACKAGE, 0).sourceDir
+    fun getAPK(): String =
+        applicationContext.getPackageManager().getApplicationInfo(applicationContext.packageName, 0).sourceDir
 
     // FIXME
     fun getSigBlock(apk: String): ByteArray? {
@@ -67,7 +72,7 @@ class MainActivity : AppCompatActivity() {
                 val pairId = it.readUInt(4)
                 val pairVal = it.read(pairLen.toInt() - 4)
                 results.add(Block(pairId, pairVal))
-                Log.v(TAG, "Pair len ${pairLen}, ID 0x${pairId.toString(16)}")
+                Log.v(TAG, "Pair length=${pairLen}, ID=0x${pairId.toString(16)}")
                 when (pairId) {
                     APK_SIGNATURE_SCHEME_V2_BLOCK_ID ->
                         Log.v(TAG, "APK SIGNATURE SCHEME v2 BLOCK")
@@ -77,6 +82,8 @@ class MainActivity : AppCompatActivity() {
                         Log.v(TAG, "APK SIGNATURE SCHEME v3.1 BLOCK")
                     VERITY_PADDING_BLOCK_ID ->
                         Log.v(TAG, "VERITY PADDING BLOCK")
+                    POC_BLOCK_ID ->
+                        Log.v(TAG, "POC BLOCK")
                     else ->
                         Log.v(TAG, "UNKNOWN BLOCK")
                 }
@@ -98,6 +105,5 @@ class MainActivity : AppCompatActivity() {
 
     val POC_BLOCK_ID: Long = 0x506f43
 
-    val PACKAGE = "dev.obfusk.sbcodepoc"
     val TAG = "SBCodePoC"
 }
