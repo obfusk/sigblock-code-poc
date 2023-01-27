@@ -1,0 +1,41 @@
+name: CI
+on: [push, pull_request, workflow_dispatch]
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+        persist-credentials: false
+        submodules: false
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y apksigner
+        python3 -m pip install --upgrade pip
+        git clone -b signing https://github.com/obfusk/apksigtool.git
+        cd apksigtool
+        make install
+    - name: Build
+      run: |
+        ./gradlew assembleRelease
+    - name: Sign
+      run: |
+        keytool -genkey -keystore dummy-ks -alias dummy -keyalg RSA \
+          -keysize 4096 -sigalg SHA512withRSA -validity 10000 \
+          -storepass dummy-password -dname CN=dummy
+        cp app/build/outputs/apk/release/app-release-unsigned.apk signed.apk
+        apksigner sign -v --ks dummy-ks --ks-key-alias dummy \
+          --ks-pass pass:dummy-password signed.apk
+    - name: Add PoC
+      run: |
+        cp signed.apk poc.apk
+        ./add_poc.py poc.apk payload
+    - uses: actions/upload-artifact@v2
+      with:
+        name: APK
+        path: |
+          app/build/outputs/apk/release/app-release-unsigned.apk
+          signed.apk
+          poc.apk
