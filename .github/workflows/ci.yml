@@ -33,7 +33,7 @@ jobs:
       run: |
         cp signed.apk poc.apk
         ./add_poc.py poc.apk payload
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       with:
         name: APK
         path: |
