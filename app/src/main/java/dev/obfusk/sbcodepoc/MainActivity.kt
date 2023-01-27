@@ -14,9 +14,10 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         val tv: TextView = findViewById(R.id.message)
-        val apk = getAPK()
-        val sigBlock = getSigBlock(apk)
-        tv.text = if (sigBlock == null) "null" else sigBlock.size.toString()
+        getSigBlock(getAPK())?.let {
+            parseSigBlock(it) // FIXME
+            tv.text = it.size.toString()
+        }
     }
 
     fun getAPK(): String = applicationContext.getPackageManager().getApplicationInfo(PACKAGE, 0).sourceDir
@@ -56,7 +57,8 @@ class MainActivity : AppCompatActivity() {
     // FIXME
     fun parseSigBlock(sigBlock: ByteArray) {
         sigBlock.inputStream().use {
-            val sbSize1 =
+            val sbSize1 = it.readUInt(8)
+            Log.v(TAG, "Size 1 is ${sbSize1}")
         }
     }
 
