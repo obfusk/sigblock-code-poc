@@ -15,48 +15,44 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         val tv: TextView = findViewById(R.id.message)
         val apk = getAPK()
-        val sig_block = getSigBlock(apk)
-        tv.text = if (sig_block == null) "null" else sig_block.size.toString()
+        val sigBlock = getSigBlock(apk)
+        tv.text = if (sigBlock == null) "null" else sigBlock.size.toString()
     }
 
     fun getAPK(): String {
         val pm = applicationContext.getPackageManager()
-        val info = pm.getApplicationInfo("dev.obfusk.sbcodepoc", 0)
+        val info = pm.getApplicationInfo(PACKAGE, 0)
         return info.sourceDir
     }
 
+    // FIXME
     fun getSigBlock(apk: String): ByteArray? {
         RandomAccessFile(apk, "r").use {
             val len = it.length()
             var pos = len - 1024
-            Log.v(TAG, "Length: ${len}")
             while (pos + 4 <= len) {
                 it.seek(pos)
-                val eocd_magic = it.read(4)
-                if (eocd_magic.contentEquals(EOCD_MAGIC)) {
-                    Log.v(TAG, "Found EOCD at ${pos}")
+                val eocdMagic = it.read(4)
+                if (eocdMagic.contentEquals(EOCD_MAGIC)) {
                     it.seek(pos + 16)
-                    val cd_off = it.readUInt(4)
-                    Log.v(TAG, "CD offset is ${cd_off}")
-                    it.seek(cd_off - 16)
-                    val sb_magic = it.read(16)
-                    if (!sb_magic.contentEquals(SB_MAGIC)) {
+                    val cdOff = it.readUInt(4)
+                    it.seek(cdOff - 16)
+                    val sbMagic = it.read(16)
+                    if (!sbMagic.contentEquals(SB_MAGIC)) {
                         Log.e(TAG, "No APK Signing Block")
                         return null
                     }
-                    it.seek(cd_off - 24)
-                    val sb_size2 = it.readUInt(8)
-                    Log.v(TAG, "Size 2 is ${sb_size2}")
-                    it.seek(cd_off - sb_size2 - 8)
-                    val sb_size1 = it.readUInt(8)
-                    Log.v(TAG, "Size 1 is ${sb_size1}")
-                    if (sb_size1 != sb_size2) {
+                    it.seek(cdOff - 24)
+                    val sbSize2 = it.readUInt(8)
+                    it.seek(cdOff - sbSize2 - 8)
+                    val sbSize1 = it.readUInt(8)
+                    if (sbSize1 != sbSize2) {
                         Log.e(TAG, "APK Signing Block sizes not equal")
                         return null
                     }
-                    it.seek(cd_off - sb_size2)
-                    val sig_block = it.read(sb_size2.toInt() + 8)
-                    return sig_block
+                    it.seek(cdOff - sbSize2)
+                    val sigBlock = it.read(sbSize2.toInt() + 8)
+                    return sigBlock
                 }
                 ++pos
             }
@@ -66,5 +62,7 @@ class MainActivity : AppCompatActivity() {
 
     val EOCD_MAGIC = byteArrayOf(0x50, 0x4b, 0x05, 0x06)
     val SB_MAGIC = "APK Sig Block 42".toByteArray()
+
+    val PACKAGE = "dev.obfusk.sbcodepoc"
     val TAG = "SBCodePoC"
 }
