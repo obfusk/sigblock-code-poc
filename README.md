@@ -12,6 +12,10 @@ extracts a payload to alter its behaviour.
 Whether the payload is present or not does not affect the validity of the
 signature.
 
+Thus we get two APKs -- with an identical valid v1+v2+v3 signature -- but one
+says "nothing to see here..." when you run it, whereas the other says e.g. "This
+is the payload".
+
 NB: uses the work-in-progress [`apksigtool`](https://github.com/obfusk/apksigtool)
 to add the PoC block to the APK.
 
