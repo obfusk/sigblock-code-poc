@@ -16,7 +16,7 @@ class MainActivity : AppCompatActivity() {
         val tv: TextView = findViewById(R.id.message)
         val apk = getAPK()
         val sig_block = getSigBlock(apk)
-        tv.text = if (sig_block == null) "null" else "not null"
+        tv.text = if (sig_block == null) "null" else sig_block.size.toString()
     }
 
     fun getAPK(): String {
@@ -39,15 +39,17 @@ class MainActivity : AppCompatActivity() {
                     val cd_off = it.readUInt(4)
                     Log.v(TAG, "CD offset is ${cd_off}")
                     it.seek(cd_off - 16)
-                    val sb_magic = it.read(4)
+                    val sb_magic = it.read(16)
                     if (!sb_magic.contentEquals(SB_MAGIC)) {
                         Log.e(TAG, "No APK Signing Block")
                         return null
                     }
-                    it.seek(cd_off - 8)
+                    it.seek(cd_off - 24)
                     val sb_size2 = it.readUInt(8)
-                    it.seek(cd_off - sb_size2)
+                    Log.v(TAG, "Size 2 is ${sb_size2}")
+                    it.seek(cd_off - sb_size2 - 8)
                     val sb_size1 = it.readUInt(8)
+                    Log.v(TAG, "Size 1 is ${sb_size1}")
                     if (sb_size1 != sb_size2) {
                         Log.e(TAG, "APK Signing Block sizes not equal")
                         return null
