@@ -6,16 +6,17 @@ package dev.obfusk.sbcodepoc
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.widget.TextView
 import java.io.RandomAccessFile
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
+        val tv: TextView = findViewById(R.id.message)
         val apk = getAPK()
-        Log.v(TAG, "APK: ${apk}")
-        // ...
+        val sig_block = getSigBlock(apk)
+        tv.text = if (sig_block == null) "null" else "not null"
     }
 
     fun getAPK(): String {
@@ -24,27 +25,32 @@ class MainActivity : AppCompatActivity() {
         return info.sourceDir
     }
 
-    fun getSB(apk: String): ByteArray? {
+    fun getSigBlock(apk: String): ByteArray? {
         RandomAccessFile(apk, "r").use {
             val len = it.length()
             var pos = len - 1024
-            while (pos < len - 1) {
+            Log.v(TAG, "Length: ${len}")
+            while (pos + 4 <= len) {
                 it.seek(pos)
                 val eocd_magic = it.read(4)
                 if (eocd_magic.contentEquals(EOCD_MAGIC)) {
-                    it.seek(pos - 16)
+                    Log.v(TAG, "Found EOCD at ${pos}")
+                    it.seek(pos + 16)
                     val cd_off = it.readUInt(4)
+                    Log.v(TAG, "CD offset is ${cd_off}")
                     it.seek(cd_off - 16)
                     val sb_magic = it.read(4)
                     if (!sb_magic.contentEquals(SB_MAGIC)) {
-                        error("No APK Signing Block")
+                        Log.e(TAG, "No APK Signing Block")
+                        return null
                     }
                     it.seek(cd_off - 8)
                     val sb_size2 = it.readUInt(8)
                     it.seek(cd_off - sb_size2)
                     val sb_size1 = it.readUInt(8)
                     if (sb_size1 != sb_size2) {
-                        error("APK Signing Block sizes not equal")
+                        Log.e(TAG, "APK Signing Block sizes not equal")
+                        return null
                     }
                     it.seek(cd_off - sb_size2)
                     val sig_block = it.read(sb_size2.toInt() + 8)
