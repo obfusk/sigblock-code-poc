@@ -53,6 +53,13 @@ class MainActivity : AppCompatActivity() {
         return null
     }
 
+    // FIXME
+    fun parseSigBlock(sigBlock: ByteArray) {
+        sigBlock.inputStream().use {
+            val sbSize1 =
+        }
+    }
+
     val EOCD_MAGIC = byteArrayOf(0x50, 0x4b, 0x05, 0x06)
     val SB_MAGIC = "APK Sig Block 42".toByteArray()
 

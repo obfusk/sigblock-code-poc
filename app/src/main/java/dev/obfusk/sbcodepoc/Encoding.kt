@@ -17,6 +17,7 @@
 
 package dev.obfusk.sbcodepoc
 
+import java.io.InputStream
 import java.io.RandomAccessFile
 
 internal fun RandomAccessFile.read(length: Int): ByteArray {
@@ -33,6 +34,29 @@ internal fun RandomAccessFile.read(length: Int): ByteArray {
 }
 
 internal fun RandomAccessFile.readUInt(numberOfBytes: Int): Long {
+    val buffer = read(numberOfBytes)
+    var value: Long = 0
+    for (k in 0 until numberOfBytes) {
+        val next = buffer[k].toUByte().toLong()
+        value += next shl k * java.lang.Byte.SIZE
+    }
+    return value
+}
+
+internal fun InputStream.read(length: Int): ByteArray {
+    val buffer = ByteArray(length)
+    var offset = 0
+    while (offset < length) {
+        val result = read(buffer, offset, length - offset)
+        if (result < 0) {
+            error("Not enough bytes to read: $length")
+        }
+        offset += result
+    }
+    return buffer
+}
+
+internal fun InputStream.readUInt(numberOfBytes: Int): Long {
     val buffer = read(numberOfBytes)
     var value: Long = 0
     for (k in 0 until numberOfBytes) {
