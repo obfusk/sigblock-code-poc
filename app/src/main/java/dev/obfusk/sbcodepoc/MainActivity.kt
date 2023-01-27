@@ -19,11 +19,7 @@ class MainActivity : AppCompatActivity() {
         tv.text = if (sigBlock == null) "null" else sigBlock.size.toString()
     }
 
-    fun getAPK(): String {
-        val pm = applicationContext.getPackageManager()
-        val info = pm.getApplicationInfo(PACKAGE, 0)
-        return info.sourceDir
-    }
+    fun getAPK(): String = applicationContext.getPackageManager().getApplicationInfo(PACKAGE, 0).sourceDir
 
     // FIXME
     fun getSigBlock(apk: String): ByteArray? {
@@ -32,13 +28,11 @@ class MainActivity : AppCompatActivity() {
             var pos = len - 1024
             while (pos + 4 <= len) {
                 it.seek(pos)
-                val eocdMagic = it.read(4)
-                if (eocdMagic.contentEquals(EOCD_MAGIC)) {
+                if (it.read(4).contentEquals(EOCD_MAGIC)) {
                     it.seek(pos + 16)
                     val cdOff = it.readUInt(4)
                     it.seek(cdOff - 16)
-                    val sbMagic = it.read(16)
-                    if (!sbMagic.contentEquals(SB_MAGIC)) {
+                    if (!it.read(16).contentEquals(SB_MAGIC)) {
                         Log.e(TAG, "No APK Signing Block")
                         return null
                     }
@@ -50,9 +44,8 @@ class MainActivity : AppCompatActivity() {
                         Log.e(TAG, "APK Signing Block sizes not equal")
                         return null
                     }
-                    it.seek(cdOff - sbSize2)
-                    val sigBlock = it.read(sbSize2.toInt() + 8)
-                    return sigBlock
+                    it.seek(cdOff - sbSize2 - 8)
+                    return it.read(sbSize2.toInt() + 8)
                 }
                 ++pos
             }
