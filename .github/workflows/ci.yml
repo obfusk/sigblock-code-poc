@@ -33,6 +33,8 @@ jobs:
       run: |
         cp signed.apk poc.apk
         ./add_poc.py poc.apk payload
+        cp signed.apk poc-verity.apk
+        ./add_poc.py --verity poc-verity.apk payload
     - uses: actions/upload-artifact@v3
       with:
         name: APK
@@ -40,3 +42,4 @@ jobs:
           app/build/outputs/apk/release/app-release-unsigned.apk
           signed.apk
           poc.apk
+          poc-verity.apk

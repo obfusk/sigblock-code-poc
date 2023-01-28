@@ -17,11 +17,11 @@ says "nothing to see here..." when you run it, whereas the other says e.g. "This
 is the payload".
 
 NB: uses the work-in-progress [`apksigtool`](https://github.com/obfusk/apksigtool)
-to add the PoC block to the APK.
+to add the payload to the APK.
 
 ## Example
 
-Generate a dummy keystore:
+### Generate a dummy keystore
 
 ```bash
 $ keytool -genkey -keystore dummy-ks -alias dummy -keyalg RSA \
@@ -29,27 +29,36 @@ $ keytool -genkey -keystore dummy-ks -alias dummy -keyalg RSA \
     -storepass dummy-password -dname CN=dummy
 ```
 
-Build a release APK:
+### Build a release APK
 
 ```bash
 $ ./gradlew assembleRelease
 ```
 
-Sign it with the dummy key:
+### Sign it with the dummy key
 
 ```bash
 $ cp app/build/outputs/apk/release/app-release-unsigned.apk poc.apk
 $ apksigner sign -v --ks dummy-ks --ks-key-alias dummy poc.apk
 ```
 
-Add the payload:
+### Add the payload
+
+#### In a custom block
 
 ```bash
 $ echo 'This is the payload' > payload
 $ ./add_poc.py poc.apk payload
 ```
 
-Install on phone:
+#### Hidden in the verity padding block
+
+```bash
+$ echo 'This is the payload' > payload
+$ ./add_poc.py --verity poc.apk payload
+```
+
+### Install on phone
 
 ```bash
 $ adb install poc.apk
