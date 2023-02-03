@@ -14,7 +14,6 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y apksigner \
           python3-{asn1crypto,click,cryptography,pyasn1,pyasn1-modules,simplejson}
-        python3 -m pip install --upgrade pip
         git clone -b signing https://github.com/obfusk/apksigtool.git
         cd apksigtool
         make install
