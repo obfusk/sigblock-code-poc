@@ -48,7 +48,10 @@ def add_poc_to_pairs(pairs: Tuple[apksigtool.Pair, ...], payload: bytes,
         for pair in pairs:
             if isinstance(pair.value, apksigtool.VerityPaddingBlock):
                 found = True
-                blk = VerityPaddingBlockWithPayload(pair.value.size, payload)
+                size = pair.value.size
+                if len(payload) > size:
+                    size += (len(payload) - size + 4096 - 1) // 4096 * 4096
+                blk = VerityPaddingBlockWithPayload(size, payload)
                 pair = apksigtool.Pair.from_block(blk)
             result.append(pair)
         if not found:
