@@ -35,6 +35,15 @@ $ keytool -genkey -keystore dummy-ks -alias dummy -keyalg RSA \
 $ ./gradlew assembleRelease
 ```
 
+NB: if you get an "SDK location not found" error, you'll need to set
+`ANDROID_HOME` first (adjust accordingly if the SDK is in another location than
+the Android Studio default of `~/Android/Sdk`):
+
+```bash
+$ export ANDROID_HOME=~/Android/Sdk
+$ ./gradlew assembleRelease
+```
+
 ### Sign it with the dummy key
 
 ```bash
