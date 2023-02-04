@@ -31,6 +31,9 @@ $ keytool -genkey -keystore dummy-ks -alias dummy -keyalg RSA \
 
 ### Build a release APK
 
+> **Note**
+> Make sure that you have defined the Android SDK location via `ANDROID_HOME` environment variable or in sdk.dir path in `local.properties` file.
+
 ```bash
 $ ./gradlew assembleRelease
 ```
